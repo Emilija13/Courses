@@ -1,95 +1,156 @@
-import type React from "react"
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { GraduationCap, Users, BookOpen } from "lucide-react"
+import LoginPage from "@/components/LoginPage"
 import AdminDashboard from "@/components/AdminDashboard"
 import StudentDashboard from "@/components/StudentDashboard"
+import CourseDetail from "@/components/CourseDetail"
+import type { User, Course, Student, CourseFile } from "@/types"
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [userRole, setUserRole] = useState<"admin" | "student" | "">("")
-  const [currentUser, setCurrentUser] = useState<string>("")
+  const [user, setUser] = useState<User | null>(null)
+  const [courses, setCourses] = useState<Course[]>([
+    {
+      id: 1,
+      title: "Introduction to Computer Science",
+      description:
+        "Learn the fundamentals of programming and computer science concepts. This comprehensive course covers basic programming principles, data structures, algorithms, and software development practices.",
+      instructor: "Dr. Smith",
+      enrolledStudents: 25,
+      category: "Computer Science",
+      duration: "12",
+      level: "beginner",
+      createdDate: "2024-01-10",
+      files: [
+        { id: 1, name: "Syllabus.pdf", uploadDate: "2024-01-15", size: "245 KB" },
+        { id: 2, name: "Lecture1.pptx", uploadDate: "2024-01-20", size: "1.2 MB" },
+        { id: 3, name: "Assignment1.docx", uploadDate: "2024-01-25", size: "156 KB" },
+        { id: 4, name: "Reading_List.pdf", uploadDate: "2024-01-30", size: "89 KB" },
+      ],
+    },
+    {
+      id: 2,
+      title: "Web Development Basics",
+      description:
+        "HTML, CSS, and JavaScript fundamentals for web development. Build responsive websites and learn modern web development techniques.",
+      instructor: "Prof. Johnson",
+      enrolledStudents: 18,
+      category: "Web Development",
+      duration: "8",
+      level: "beginner",
+      createdDate: "2024-01-12",
+      files: [
+        { id: 5, name: "HTML_Basics.pdf", uploadDate: "2024-01-18", size: "890 KB" },
+        { id: 6, name: "CSS_Guide.pdf", uploadDate: "2024-01-22", size: "1.5 MB" },
+        { id: 7, name: "JavaScript_Intro.pdf", uploadDate: "2024-01-28", size: "2.1 MB" },
+      ],
+    },
+    {
+      id: 3,
+      title: "Advanced Mathematics",
+      description: "Calculus, linear algebra, and advanced mathematical concepts for engineering and science students.",
+      instructor: "Dr. Williams",
+      enrolledStudents: 32,
+      category: "Mathematics",
+      duration: "16",
+      level: "advanced",
+      createdDate: "2024-01-08",
+      files: [
+        { id: 8, name: "Calculus_Notes.pdf", uploadDate: "2024-01-16", size: "3.2 MB" },
+        { id: 9, name: "Linear_Algebra.pdf", uploadDate: "2024-01-24", size: "2.8 MB" },
+      ],
+    },
+  ])
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault()
-    const formData = new FormData(e.target as HTMLFormElement)
-    const username = formData.get("username") as string
-    const role = formData.get("role") as "admin" | "student"
+  const [students] = useState<Student[]>([
+    { id: 1, name: "Alice Johnson", email: "alice@example.com" },
+    { id: 2, name: "Bob Smith", email: "bob@example.com" },
+    { id: 3, name: "Carol Davis", email: "carol@example.com" },
+    { id: 4, name: "David Wilson", email: "david@example.com" },
+    { id: 5, name: "Emma Brown", email: "emma@example.com" },
+    { id: 6, name: "Frank Miller", email: "frank@example.com" },
+  ])
 
-    if (username && role) {
-      setCurrentUser(username)
-      setUserRole(role)
-      setIsLoggedIn(true)
-    }
+  const handleLogin = (userData: User) => {
+    setUser(userData)
   }
 
   const handleLogout = () => {
-    setIsLoggedIn(false)
-    setUserRole("")
-    setCurrentUser("")
+    setUser(null)
   }
 
-  if (isLoggedIn) {
-    return userRole === "admin" ? (
-      <AdminDashboard currentUser={currentUser} onLogout={handleLogout} />
-    ) : (
-      <StudentDashboard currentUser={currentUser} onLogout={handleLogout} />
+  const addCourse = (newCourse: Omit<Course, "id" | "enrolledStudents" | "files" | "createdDate">) => {
+    const course: Course = {
+      ...newCourse,
+      id: courses.length + 1,
+      enrolledStudents: 0,
+      files: [],
+      createdDate: new Date().toISOString().split("T")[0],
+    }
+    setCourses([...courses, course])
+  }
+
+  const addFileToCourse = (courseId: number, file: Omit<CourseFile, "id">) => {
+    setCourses(
+      courses.map((course) =>
+        course.id === courseId ? { ...course, files: [...course.files, { ...file, id: Date.now() }] } : course,
+      ),
     )
   }
 
+  if (!user) {
+    return (
+      <Router>
+        <LoginPage onLogin={handleLogin} />
+      </Router>
+    )
+  }
+
+  // Add progress to courses for student view
+  const coursesWithProgress = courses.map((course) => ({
+    ...course,
+    progress: user.role === "student" ? Math.floor(Math.random() * 100) : undefined,
+  }))
+
+  // Mock enrolled courses for students (courses 1 and 2)
+  const enrolledCourses =
+    user.role === "student" ? coursesWithProgress.filter((course) => [1, 2].includes(course.id)) : coursesWithProgress
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
-            <GraduationCap className="w-6 h-6 text-white" />
-          </div>
-          <CardTitle className="text-2xl font-bold">EduManage</CardTitle>
-          <CardDescription>Course Management System</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input id="username" name="username" type="text" placeholder="Enter your username" required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" name="password" type="password" placeholder="Enter your password" required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
-              <Select name="role" required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select your role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="admin">
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      Administrator (Teacher)
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="student">
-                    <div className="flex items-center gap-2">
-                      <BookOpen className="w-4 h-4" />
-                      Student
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Button type="submit" className="w-full">
-              Sign In
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+    <Router>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            user.role === "admin" ? (
+              <AdminDashboard
+                currentUser={user.username}
+                onLogout={handleLogout}
+                courses={courses}
+                students={students}
+                onAddCourse={addCourse}
+                onAddFile={addFileToCourse}
+              />
+            ) : (
+              <StudentDashboard currentUser={user.username} onLogout={handleLogout} courses={enrolledCourses} />
+            )
+          }
+        />
+        <Route
+          path="/course/:courseId"
+          element={
+            <CourseDetail
+              courses={courses}
+              students={students}
+              currentUser={user.username}
+              userRole={user.role}
+              onLogout={handleLogout}
+              onAddFile={addFileToCourse}
+            />
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
   )
 }
 

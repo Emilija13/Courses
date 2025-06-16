@@ -4,18 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { UserPlus, Users } from "lucide-react"
-
-interface Student {
-  id: number
-  name: string
-  email: string
-}
-
-interface Course {
-  id: number
-  title: string
-  enrolledStudents: number
-}
+import type { Course, Student } from "@/types"
 
 interface UserEnrollmentProps {
   courses: Course[]

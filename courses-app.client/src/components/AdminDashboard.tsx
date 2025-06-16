@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -7,61 +6,25 @@ import CourseCreation from "@/components/CourseCreation"
 import CourseList from "@/components/CourseList"
 import UserEnrollment from "@/components/UserEnrollment"
 import FileUpload from "@/components/FileUpload"
+import type { Course, Student, CourseFile } from "@/types"
 
 interface AdminDashboardProps {
   currentUser: string
   onLogout: () => void
+  courses: Course[]
+  students: Student[]
+  onAddCourse: (course: Omit<Course, "id" | "enrolledStudents" | "files" | "createdDate">) => void
+  onAddFile: (courseId: number, file: Omit<CourseFile, "id">) => void
 }
 
-export default function AdminDashboard({ currentUser, onLogout }: AdminDashboardProps) {
-  const [courses, setCourses] = useState([
-    {
-      id: 1,
-      title: "Introduction to Computer Science",
-      description: "Learn the fundamentals of programming and computer science concepts.",
-      instructor: "Dr. Smith",
-      enrolledStudents: 25,
-      files: [
-        { id: 1, name: "Syllabus.pdf", uploadDate: "2024-01-15" },
-        { id: 2, name: "Lecture1.pptx", uploadDate: "2024-01-20" },
-      ],
-    },
-    {
-      id: 2,
-      title: "Web Development Basics",
-      description: "HTML, CSS, and JavaScript fundamentals for web development.",
-      instructor: "Prof. Johnson",
-      enrolledStudents: 18,
-      files: [{ id: 3, name: "HTML_Basics.pdf", uploadDate: "2024-01-18" }],
-    },
-  ])
-
-  const [students] = useState([
-    { id: 1, name: "Alice Johnson", email: "alice@example.com" },
-    { id: 2, name: "Bob Smith", email: "bob@example.com" },
-    { id: 3, name: "Carol Davis", email: "carol@example.com" },
-    { id: 4, name: "David Wilson", email: "david@example.com" },
-  ])
-
-  const addCourse = (newCourse: any) => {
-    const course = {
-      ...newCourse,
-      id: courses.length + 1,
-      instructor: currentUser,
-      enrolledStudents: 0,
-      files: [],
-    }
-    setCourses([...courses, course])
-  }
-
-  const addFileToCourse = (courseId: number, file: any) => {
-    setCourses(
-      courses.map((course) =>
-        course.id === courseId ? { ...course, files: [...course.files, { ...file, id: Date.now() }] } : course,
-      ),
-    )
-  }
-
+export default function AdminDashboard({
+  currentUser,
+  onLogout,
+  courses,
+  students,
+  onAddCourse,
+  onAddFile,
+}: AdminDashboardProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
@@ -112,7 +75,7 @@ export default function AdminDashboard({ currentUser, onLogout }: AdminDashboard
                 <CardDescription>Add a new course to the system</CardDescription>
               </CardHeader>
               <CardContent>
-                <CourseCreation onAddCourse={addCourse} />
+                <CourseCreation onAddCourse={onAddCourse} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -136,7 +99,7 @@ export default function AdminDashboard({ currentUser, onLogout }: AdminDashboard
                 <CardDescription>Upload and manage course files</CardDescription>
               </CardHeader>
               <CardContent>
-                <FileUpload courses={courses} onFileUpload={addFileToCourse} />
+                <FileUpload courses={courses} onFileUpload={onAddFile} />
               </CardContent>
             </Card>
           </TabsContent>

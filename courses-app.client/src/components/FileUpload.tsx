@@ -6,16 +6,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Upload, FileText, Download, Trash2 } from "lucide-react"
-
-interface Course {
-  id: number
-  title: string
-  files: any[]
-}
+import type { Course, CourseFile } from "@/types"
 
 interface FileUploadProps {
   courses: Course[]
-  onFileUpload: (courseId: number, file: any) => void
+  onFileUpload: (courseId: number, file: Omit<CourseFile, "id">) => void
 }
 
 export default function FileUpload({ courses, onFileUpload }: FileUploadProps) {
