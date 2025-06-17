@@ -1,6 +1,6 @@
 export interface User {
-  username: string
-  role: "admin" | "student"
+  email: string
+  role: "professor" | "student"
 }
 
 export interface CourseFile {

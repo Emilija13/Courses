@@ -1,27 +1,53 @@
-import type React from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { GraduationCap, Users, BookOpen } from "lucide-react"
-import type { User } from "@/types"
+import type React from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { GraduationCap } from "lucide-react";
+import type { User } from "@/types";
 
 interface LoginPageProps {
-  onLogin: (user: User) => void
+  onLogin: (user: User) => void;
 }
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault()
-    const formData = new FormData(e.target as HTMLFormElement)
-    const username = formData.get("username") as string
-    const role = formData.get("role") as "admin" | "student"
 
-    if (username && role) {
-      onLogin({ username, role })
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.target as HTMLFormElement);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    if (email && password) {
+      try {
+        const response = await fetch("http://localhost:8000/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        if (response.status === 201) {
+          const data = await response.json();
+          const role = data.user.role;
+          const email = data.user.email;
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("role", data.user.role);
+
+          onLogin({email, role});
+        } else {
+          console.error("Login failed");
+        }
+      } catch (error) {
+        console.error("Login error", error);
+      }
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4">
@@ -36,34 +62,24 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input id="username" name="username" type="text" placeholder="Enter your username" required />
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="text"
+                placeholder="Enter your email"
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" name="password" type="password" placeholder="Enter your password" required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
-              <Select name="role" required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select your role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="admin">
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      Administrator (Teacher)
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="student">
-                    <div className="flex items-center gap-2">
-                      <BookOpen className="w-4 h-4" />
-                      Student
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="Enter your password"
+                required
+              />
             </div>
             <Button type="submit" className="w-full">
               Sign In
@@ -72,5 +88,5 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

@@ -27,7 +27,7 @@ interface CourseDetailProps {
   courses: Course[]
   students: Student[]
   currentUser: string
-  userRole: "admin" | "student"
+  userRole: "professor" | "student"
   onLogout: () => void
   onAddFile: (courseId: number, file: Omit<CourseFile, "id">) => void
 }
@@ -195,8 +195,8 @@ export default function CourseDetail({
         <Tabs defaultValue="materials" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="materials">Course Materials</TabsTrigger>
-            {userRole === "admin" && <TabsTrigger value="students">Enrolled Students</TabsTrigger>}
-            {userRole === "admin" && <TabsTrigger value="manage">Manage Files</TabsTrigger>}
+            {userRole === "professor" && <TabsTrigger value="students">Enrolled Students</TabsTrigger>}
+            {userRole === "professor" && <TabsTrigger value="manage">Manage Files</TabsTrigger>}
             {userRole === "student" && <TabsTrigger value="progress">My Progress</TabsTrigger>}
           </TabsList>
 
@@ -232,7 +232,7 @@ export default function CourseDetail({
                             <Download className="w-4 h-4 mr-2" />
                             Download
                           </Button>
-                          {userRole === "admin" && (
+                          {userRole === "professor" && (
                             <Button size="sm" variant="ghost">
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -246,7 +246,7 @@ export default function CourseDetail({
                     <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No materials yet</h3>
                     <p className="text-gray-600">
-                      {userRole === "admin"
+                      {userRole === "professor"
                         ? "Upload course materials to get started."
                         : "Course materials will appear here when uploaded by your instructor."}
                     </p>
@@ -257,7 +257,7 @@ export default function CourseDetail({
           </TabsContent>
 
           {/* Students Tab (Admin only) */}
-          {userRole === "admin" && (
+          {userRole === "professor" && (
             <TabsContent value="students">
               <Card>
                 <CardHeader>
@@ -295,7 +295,7 @@ export default function CourseDetail({
           )}
 
           {/* Manage Files Tab (Admin only) */}
-          {userRole === "admin" && (
+          {userRole === "professor" && (
             <TabsContent value="manage">
               <Card>
                 <CardHeader>

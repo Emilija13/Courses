@@ -121,9 +121,9 @@ function App() {
         <Route
           path="/"
           element={
-            user.role === "admin" ? (
+            user.role === "professor" ? (
               <AdminDashboard
-                currentUser={user.username}
+                currentUser={user.email}
                 onLogout={handleLogout}
                 courses={courses}
                 students={students}
@@ -131,7 +131,7 @@ function App() {
                 onAddFile={addFileToCourse}
               />
             ) : (
-              <StudentDashboard currentUser={user.username} onLogout={handleLogout} courses={enrolledCourses} />
+              <StudentDashboard currentUser={user.email} onLogout={handleLogout} courses={enrolledCourses} />
             )
           }
         />
@@ -141,7 +141,7 @@ function App() {
             <CourseDetail
               courses={courses}
               students={students}
-              currentUser={user.username}
+              currentUser={user.email}
               userRole={user.role}
               onLogout={handleLogout}
               onAddFile={addFileToCourse}
