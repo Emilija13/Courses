@@ -38,6 +38,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           const email = data.user.email;
           localStorage.setItem("token", data.token);
           localStorage.setItem("role", data.user.role);
+          localStorage.setItem("userId", data.user.id);
 
           onLogin({email, role});
         } else {

@@ -11,7 +11,7 @@ function App() {
   const [courses, setCourses] = useState<Course[]>([
     {
       id: 1,
-      title: "Introduction to Computer Science",
+      name: "Introduction to Computer Science",
       description:
         "Learn the fundamentals of programming and computer science concepts. This comprehensive course covers basic programming principles, data structures, algorithms, and software development practices.",
       instructor: "Dr. Smith",
@@ -29,7 +29,7 @@ function App() {
     },
     {
       id: 2,
-      title: "Web Development Basics",
+      name: "Web Development Basics",
       description:
         "HTML, CSS, and JavaScript fundamentals for web development. Build responsive websites and learn modern web development techniques.",
       instructor: "Prof. Johnson",
@@ -46,7 +46,7 @@ function App() {
     },
     {
       id: 3,
-      title: "Advanced Mathematics",
+      name: "Advanced Mathematics",
       description: "Calculus, linear algebra, and advanced mathematical concepts for engineering and science students.",
       instructor: "Dr. Williams",
       enrolledStudents: 32,

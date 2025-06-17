@@ -1,5 +1,4 @@
 import type React from "react"
-
 import { useParams, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -125,7 +124,7 @@ export default function CourseDetail({
         <div className="mb-8">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{course.title}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">{course.name}</h1>
               <p className="text-lg text-gray-600 mb-4">{course.description}</p>
               <div className="flex items-center gap-4 text-sm text-gray-500">
                 <div className="flex items-center gap-1">

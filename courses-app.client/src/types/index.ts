@@ -13,7 +13,7 @@ export interface CourseFile {
 
 export interface Course {
   id: number
-  title: string
+  name: string
   description: string
   instructor: string
   enrolledStudents: number
