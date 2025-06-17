@@ -6,9 +6,10 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus } from "lucide-react"
+import type { Course } from "@/types"
 
 interface CourseCreationProps {
-  onAddCourse: (course: any) => void
+  onAddCourse: (course: Omit<Course, "id" | "enrolledStudents" | "files" | "createdDate">) => void
 }
 
 export default function CourseCreation({ onAddCourse }: CourseCreationProps) {
@@ -25,6 +26,7 @@ export default function CourseCreation({ onAddCourse }: CourseCreationProps) {
       category: formData.get("category") as string,
       duration: formData.get("duration") as string,
       level: formData.get("level") as string,
+      instructor: "Current User", // This would be set by the parent component
     }
 
     // Simulate API call

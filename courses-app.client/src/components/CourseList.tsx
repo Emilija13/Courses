@@ -2,15 +2,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Users, FileText, Edit, Trash2 } from "lucide-react"
-
-interface Course {
-  id: number
-  title: string
-  description: string
-  instructor: string
-  enrolledStudents: number
-  files: any[]
-}
+import { useNavigate } from "react-router-dom"
+import type { Course } from "@/types"
 
 interface CourseListProps {
   courses: Course[]
@@ -18,10 +11,16 @@ interface CourseListProps {
 }
 
 export default function CourseList({ courses, isAdmin = false }: CourseListProps) {
+  const navigate = useNavigate()
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {courses.map((course) => (
-        <Card key={course.id} className="hover:shadow-lg transition-shadow">
+        <Card
+          key={course.id}
+          className="hover:shadow-lg transition-shadow cursor-pointer"
+          onClick={() => navigate(`/course/${course.id}`)}
+        >
           <CardHeader>
             <div className="flex items-start justify-between">
               <div>
@@ -29,7 +28,7 @@ export default function CourseList({ courses, isAdmin = false }: CourseListProps
                 <CardDescription className="mt-2">{course.description}</CardDescription>
               </div>
               {isAdmin && (
-                <div className="flex gap-1">
+                <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                   <Button size="sm" variant="ghost">
                     <Edit className="w-4 h-4" />
                   </Button>

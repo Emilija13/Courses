@@ -1,40 +1,18 @@
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { LogOut, BookOpen, Download, FileText } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import type { Course } from "@/types"
 
 interface StudentDashboardProps {
   currentUser: string
   onLogout: () => void
+  courses: Course[]
 }
 
-export default function StudentDashboard({ currentUser, onLogout }: StudentDashboardProps) {
-  const [enrolledCourses] = useState([
-    {
-      id: 1,
-      title: "Introduction to Computer Science",
-      description: "Learn the fundamentals of programming and computer science concepts.",
-      instructor: "Dr. Smith",
-      progress: 65,
-      files: [
-        { id: 1, name: "Syllabus.pdf", uploadDate: "2024-01-15", size: "245 KB" },
-        { id: 2, name: "Lecture1.pptx", uploadDate: "2024-01-20", size: "1.2 MB" },
-        { id: 3, name: "Assignment1.docx", uploadDate: "2024-01-25", size: "156 KB" },
-      ],
-    },
-    {
-      id: 2,
-      title: "Web Development Basics",
-      description: "HTML, CSS, and JavaScript fundamentals for web development.",
-      instructor: "Prof. Johnson",
-      progress: 40,
-      files: [
-        { id: 4, name: "HTML_Basics.pdf", uploadDate: "2024-01-18", size: "890 KB" },
-        { id: 5, name: "CSS_Guide.pdf", uploadDate: "2024-01-22", size: "1.5 MB" },
-      ],
-    },
-  ])
+export default function StudentDashboard({ currentUser, onLogout, courses }: StudentDashboardProps) {
+  const navigate = useNavigate()
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -65,15 +43,19 @@ export default function StudentDashboard({ currentUser, onLogout }: StudentDashb
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {enrolledCourses.map((course) => (
-            <Card key={course.id} className="hover:shadow-lg transition-shadow">
+          {courses.map((course) => (
+            <Card
+              key={course.id}
+              className="hover:shadow-lg transition-shadow cursor-pointer"
+              onClick={() => navigate(`/course/${course.id}`)}
+            >
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div>
                     <CardTitle className="text-lg">{course.title}</CardTitle>
                     <CardDescription className="mt-2">{course.description}</CardDescription>
                   </div>
-                  <Badge variant="secondary">{course.progress}%</Badge>
+                  <Badge variant="secondary">{course.progress || 0}%</Badge>
                 </div>
                 <div className="text-sm text-gray-600 mt-2">Instructor: {course.instructor}</div>
               </CardHeader>
@@ -82,12 +64,12 @@ export default function StudentDashboard({ currentUser, onLogout }: StudentDashb
                   <div>
                     <div className="flex justify-between text-sm mb-2">
                       <span>Progress</span>
-                      <span>{course.progress}%</span>
+                      <span>{course.progress || 0}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
                         className="bg-green-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${course.progress}%` }}
+                        style={{ width: `${course.progress || 0}%` }}
                       />
                     </div>
                   </div>
@@ -98,7 +80,7 @@ export default function StudentDashboard({ currentUser, onLogout }: StudentDashb
                       Course Materials ({course.files.length})
                     </h4>
                     <div className="space-y-2 max-h-32 overflow-y-auto">
-                      {course.files.map((file) => (
+                      {course.files.slice(0, 3).map((file) => (
                         <div key={file.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
@@ -106,11 +88,14 @@ export default function StudentDashboard({ currentUser, onLogout }: StudentDashb
                               {file.size} • {file.uploadDate}
                             </p>
                           </div>
-                          <Button size="sm" variant="ghost" className="ml-2">
+                          <Button size="sm" variant="ghost" className="ml-2" onClick={(e) => e.stopPropagation()}>
                             <Download className="w-4 h-4" />
                           </Button>
                         </div>
                       ))}
+                      {course.files.length > 3 && (
+                        <p className="text-xs text-gray-500 text-center">+{course.files.length - 3} more files</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -119,7 +104,7 @@ export default function StudentDashboard({ currentUser, onLogout }: StudentDashb
           ))}
         </div>
 
-        {enrolledCourses.length === 0 && (
+        {courses.length === 0 && (
           <Card className="text-center py-12">
             <CardContent>
               <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
