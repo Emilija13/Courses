@@ -13,7 +13,9 @@ interface FileUploadProps {
   onFileUpload: (courseId: number, file: Omit<CourseFile, "id">) => void
 }
 
-export default function FileUpload({ courses, onFileUpload }: FileUploadProps) {
+export default function FileUpload({ 
+  courses, 
+  onFileUpload }: FileUploadProps) {
   const [selectedCourse, setSelectedCourse] = useState<string>("")
   const [isUploading, setIsUploading] = useState(false)
 
@@ -67,7 +69,7 @@ export default function FileUpload({ courses, onFileUpload }: FileUploadProps) {
                   <SelectContent>
                     {courses.map((course) => (
                       <SelectItem key={course.id} value={course.id.toString()}>
-                        {course.title}
+                        {course.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -92,7 +94,7 @@ export default function FileUpload({ courses, onFileUpload }: FileUploadProps) {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="w-5 h-5" />
-              Files in {selectedCourseData.title}
+              Files in {selectedCourseData.name}
             </CardTitle>
             <CardDescription>{selectedCourseData.files.length} file(s) uploaded</CardDescription>
           </CardHeader>

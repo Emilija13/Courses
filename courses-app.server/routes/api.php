@@ -16,4 +16,5 @@ Route::get('students/{student}/courses', [StudentController::class, 'courses']);
 Route::apiResource('professors', ProfessorController::class);
 
 Route::middleware('auth:sanctum')->apiResource('courses', CourseController::class);
-Route::post('courses/{course}/add-student', [CourseController::class, 'addStudent']);
+Route::middleware('auth:sanctum')->post('courses/{course}/add-student', [CourseController::class, 'addStudent']);
+Route::middleware('auth:sanctum')->get('/courses/{id}/students', [CourseController::class, 'students']);

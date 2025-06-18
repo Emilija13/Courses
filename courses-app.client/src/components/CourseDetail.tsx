@@ -1,11 +1,17 @@
-import type React from "react"
-import { useParams, useNavigate } from "react-router-dom"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import type React from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   ArrowLeft,
   BookOpen,
@@ -18,32 +24,75 @@ import {
   Upload,
   LogOut,
   Trash2,
-} from "lucide-react"
-import type { Course, Student, CourseFile } from "@/types"
-import { useState } from "react"
+} from "lucide-react";
+import type { Course, Student, CourseFile } from "@/types";
+import { useEffect, useState } from "react";
 
 interface CourseDetailProps {
-  courses: Course[]
-  students: Student[]
-  currentUser: string
-  userRole: "professor" | "student"
-  onLogout: () => void
-  onAddFile: (courseId: number, file: Omit<CourseFile, "id">) => void
+  currentUser: string;
+  userRole: "professor" | "student";
+  onLogout: () => void;
+  onAddFile: (courseId: number, file: Omit<CourseFile, "id">) => void;
 }
 
 export default function CourseDetail({
-  courses,
-  students,
   currentUser,
   userRole,
   onLogout,
   onAddFile,
 }: CourseDetailProps) {
-  const { courseId } = useParams()
-  const navigate = useNavigate()
-  const [isUploading, setIsUploading] = useState(false)
+  const { courseId } = useParams();
+  const navigate = useNavigate();
+  const [isUploading, setIsUploading] = useState(false);
 
-  const course = courses.find((c) => c.id === Number(courseId))
+  const [course, setCourse] = useState<Course | null>(null);
+  const [enrolledStudents, setEnrolledStudents] = useState<Student[] | null>(null);
+  const token = localStorage.getItem("token");
+
+  const fetchStudents = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/courses/${courseId}/students`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+      console.log(data);
+      setEnrolledStudents(data);
+    } catch (err) {
+      console.error("Failed to fetch course", err);
+    }
+  };
+  const fetchCourse = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/courses/${courseId}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+      setCourse(data);
+    } catch (err) {
+      console.error("Failed to fetch course", err);
+    }
+  };
+
+  useEffect(() => {
+    if (courseId) {
+      fetchCourse();
+      fetchStudents();
+    }
+  }, [courseId]);
 
   if (!course) {
     return (
@@ -51,7 +100,9 @@ export default function CourseDetail({
         <Card className="w-full max-w-md text-center">
           <CardContent className="pt-6">
             <h2 className="text-xl font-semibold mb-2">Course Not Found</h2>
-            <p className="text-gray-600 mb-4">The course you're looking for doesn't exist.</p>
+            <p className="text-gray-600 mb-4">
+              The course you're looking for doesn't exist.
+            </p>
             <Button onClick={() => navigate("/")}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Dashboard
@@ -59,36 +110,33 @@ export default function CourseDetail({
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   const handleFileUpload = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsUploading(true)
+    e.preventDefault();
+    setIsUploading(true);
 
-    const formData = new FormData(e.target as HTMLFormElement)
-    const file = formData.get("file") as File
+    const formData = new FormData(e.target as HTMLFormElement);
+    const file = formData.get("file") as File;
 
     if (file) {
       // Simulate file upload
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       const fileData = {
         name: file.name,
         size: `${(file.size / 1024).toFixed(1)} KB`,
         uploadDate: new Date().toISOString().split("T")[0],
         type: file.type,
-      }
+      };
 
-      onAddFile(course.id, fileData)
+      onAddFile(course.id, fileData);
     }
 
-    setIsUploading(false)
-    ;(e.target as HTMLFormElement).reset()
-  }
-
-  // Mock enrolled students for this course
-  const enrolledStudents = students.slice(0, Math.min(course.enrolledStudents, students.length))
+    setIsUploading(false);
+    (e.target as HTMLFormElement).reset();
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -109,7 +157,9 @@ export default function CourseDetail({
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">Welcome, {currentUser}</span>
+              <span className="text-sm text-gray-600">
+                Welcome, {currentUser}
+              </span>
               <Button variant="outline" size="sm" onClick={onLogout}>
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
@@ -124,16 +174,24 @@ export default function CourseDetail({
         <div className="mb-8">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{course.name}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                {course.name}
+              </h1>
               <p className="text-lg text-gray-600 mb-4">{course.description}</p>
               <div className="flex items-center gap-4 text-sm text-gray-500">
                 <div className="flex items-center gap-1">
                   <Users className="w-4 h-4" />
-                  <span>Instructor: {course.instructor}</span>
+                  <span>
+                    Instructor:{" "}
+                    {course.professor.name + " " + course.professor.surname}
+                  </span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
-                  <span>Created: {course.createdDate}</span>
+                  <span>
+                    Created:{" "}
+                    {new Date(course.created_at).toLocaleDateString("en-CA")}
+                  </span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
@@ -159,7 +217,9 @@ export default function CourseDetail({
                 <div className="flex items-center gap-2">
                   <Users className="w-5 h-5 text-green-600" />
                   <div>
-                    <p className="text-2xl font-bold">{course.enrolledStudents}</p>
+                    <p className="text-2xl font-bold">
+                      {course.students_count}
+                    </p>
                     <p className="text-sm text-gray-600">Enrolled Students</p>
                   </div>
                 </div>
@@ -170,7 +230,9 @@ export default function CourseDetail({
                 <div className="flex items-center gap-2">
                   <FileText className="w-5 h-5 text-green-600" />
                   <div>
-                    <p className="text-2xl font-bold">{course.files.length}</p>
+                    <p className="text-2xl font-bold">
+                      {course?.files?.length}
+                    </p>
                     <p className="text-sm text-gray-600">Course Materials</p>
                   </div>
                 </div>
@@ -194,9 +256,15 @@ export default function CourseDetail({
         <Tabs defaultValue="materials" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="materials">Course Materials</TabsTrigger>
-            {userRole === "professor" && <TabsTrigger value="students">Enrolled Students</TabsTrigger>}
-            {userRole === "professor" && <TabsTrigger value="manage">Manage Files</TabsTrigger>}
-            {userRole === "student" && <TabsTrigger value="progress">My Progress</TabsTrigger>}
+            {userRole === "professor" && (
+              <TabsTrigger value="students">Enrolled Students</TabsTrigger>
+            )}
+            {userRole === "professor" && (
+              <TabsTrigger value="manage">Manage Files</TabsTrigger>
+            )}
+            {userRole === "student" && (
+              <TabsTrigger value="progress">My Progress</TabsTrigger>
+            )}
           </TabsList>
 
           {/* Materials Tab */}
@@ -207,12 +275,14 @@ export default function CourseDetail({
                   <FileText className="w-5 h-5" />
                   Course Materials
                 </CardTitle>
-                <CardDescription>Download and access all course materials and resources</CardDescription>
+                <CardDescription>
+                  Download and access all course materials and resources
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                {course.files.length > 0 ? (
+                {/* {course.files.length > 0 ? (
                   <div className="grid gap-3">
-                    {course.files.map((file) => (
+                    {course?.files?.map((file) => (
                       <div
                         key={file.id}
                         className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
@@ -238,19 +308,21 @@ export default function CourseDetail({
                           )}
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    ))} */}
+                {/* </div>
                 ) : (
                   <div className="text-center py-12">
                     <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No materials yet</h3>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      No materials yet
+                    </h3>
                     <p className="text-gray-600">
                       {userRole === "professor"
                         ? "Upload course materials to get started."
                         : "Course materials will appear here when uploaded by your instructor."}
                     </p>
                   </div>
-                )}
+                )} */}
               </CardContent>
             </Card>
           </TabsContent>
@@ -262,21 +334,30 @@ export default function CourseDetail({
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Users className="w-5 h-5" />
-                    Enrolled Students ({enrolledStudents.length})
+                    Enrolled Students ({enrolledStudents?.length})
                   </CardTitle>
-                  <CardDescription>View and manage students enrolled in this course</CardDescription>
+                  <CardDescription>
+                    View and manage students enrolled in this course
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {enrolledStudents.length > 0 ? (
+                  {enrolledStudents && enrolledStudents.length > 0 ? (
                     <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                      {enrolledStudents.map((student) => (
-                        <div key={student.id} className="flex items-center gap-3 p-3 border rounded-lg">
+                      {enrolledStudents?.map((student) => (
+                        <div
+                          key={student.id}
+                          className="flex items-center gap-3 p-3 border rounded-lg"
+                        >
                           <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                            <span className="text-sm font-medium text-green-600">{student.name.charAt(0)}</span>
+                            <span className="text-sm font-medium text-green-600">
+                              {student.name.charAt(0)}
+                            </span>
                           </div>
                           <div>
                             <p className="font-medium">{student.name}</p>
-                            <p className="text-sm text-gray-500">{student.email}</p>
+                            <p className="text-sm text-gray-500">
+                              {student.index}
+                            </p>
                           </div>
                         </div>
                       ))}
@@ -284,12 +365,16 @@ export default function CourseDetail({
                   ) : (
                     <div className="text-center py-12">
                       <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">No students enrolled</h3>
-                      <p className="text-gray-600">Students will appear here when enrolled in this course.</p>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        No students enrolled
+                      </h3>
+                      <p className="text-gray-600">
+                        Students will appear here when enrolled in this course.
+                      </p>
                     </div>
                   )}
                 </CardContent>
-                </Card>
+              </Card>
             </TabsContent>
           )}
 
@@ -302,7 +387,9 @@ export default function CourseDetail({
                     <Upload className="w-5 h-5" />
                     Upload Course Materials
                   </CardTitle>
-                  <CardDescription>Add new files and resources for this course</CardDescription>
+                  <CardDescription>
+                    Add new files and resources for this course
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleFileUpload} className="space-y-4">
@@ -316,7 +403,8 @@ export default function CourseDetail({
                         required
                       />
                       <p className="text-sm text-gray-500">
-                        Supported formats: PDF, DOC, DOCX, PPT, PPTX, TXT, JPG, PNG, MP4, MP3
+                        Supported formats: PDF, DOC, DOCX, PPT, PPTX, TXT, JPG,
+                        PNG, MP4, MP3
                       </p>
                     </div>
                     <Button type="submit" disabled={isUploading}>
@@ -344,7 +432,9 @@ export default function CourseDetail({
                     <Award className="w-5 h-5" />
                     My Progress
                   </CardTitle>
-                  <CardDescription>Track your progress in this course</CardDescription>
+                  <CardDescription>
+                    Track your progress in this course
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
@@ -354,20 +444,29 @@ export default function CourseDetail({
                         <span>{course.progress || 65}%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-3">
-                        <div className="bg-green-600 h-3 rounded-full" style={{ width: `${course.progress || 65}%` }} />
+                        <div
+                          className="bg-green-600 h-3 rounded-full"
+                          style={{ width: `${course.progress || 65}%` }}
+                        />
                       </div>
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="p-4 border rounded-lg">
                         <h4 className="font-medium mb-2">Materials Accessed</h4>
-                        <p className="text-2xl font-bold text-green-600">3/{course.files.length}</p>
-                        <p className="text-sm text-gray-500">Files downloaded</p>
+                        <p className="text-2xl font-bold text-green-600">
+                          3/{course.files?.length}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Files downloaded
+                        </p>
                       </div>
                       <div className="p-4 border rounded-lg">
                         <h4 className="font-medium mb-2">Time Spent</h4>
                         <p className="text-2xl font-bold text-green-600">24h</p>
-                        <p className="text-sm text-gray-500">Total study time</p>
+                        <p className="text-sm text-gray-500">
+                          Total study time
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -378,5 +477,5 @@ export default function CourseDetail({
         </Tabs>
       </main>
     </div>
-  )
+  );
 }

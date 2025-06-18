@@ -11,20 +11,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GraduationCap } from "lucide-react";
 import type { User } from "@/types";
+import { useState } from "react";
 
 interface LoginPageProps {
   onLogin: (user: User) => void;
 }
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
-
+  const [loginError, setLoginError] = useState("");
+  
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const formData = new FormData(e.target as HTMLFormElement);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
-
     if (email && password) {
       try {
         const response = await fetch("http://localhost:8000/api/login", {
@@ -40,9 +41,10 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           localStorage.setItem("role", data.user.role);
           localStorage.setItem("userId", data.user.id);
 
-          onLogin({email, role});
-        } else {
-          console.error("Login failed");
+          onLogin({ email, role });
+        } else if (response.status === 422) {
+          const errorData = await response.json();
+          setLoginError(errorData.message);
         }
       } catch (error) {
         console.error("Login error", error);
@@ -79,8 +81,12 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 name="password"
                 type="password"
                 placeholder="Enter your password"
+                onChange={() => setLoginError("")}
                 required
               />
+              {loginError && (
+                <p className="text-sm text-red-600">{loginError}</p>
+              )}
             </div>
             <Button type="submit" className="w-full">
               Sign In

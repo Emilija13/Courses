@@ -11,7 +11,11 @@ interface StudentDashboardProps {
   courses: Course[]
 }
 
-export default function StudentDashboard({ currentUser, onLogout, courses }: StudentDashboardProps) {
+export default function StudentDashboard({ 
+  currentUser, 
+  onLogout, 
+  courses
+ }: StudentDashboardProps) {
   const navigate = useNavigate()
 
   return (

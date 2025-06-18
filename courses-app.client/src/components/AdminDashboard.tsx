@@ -1,30 +1,82 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { LogOut, BookOpen } from "lucide-react"
-import CourseCreation from "@/components/CourseCreation"
-import CourseList from "@/components/CourseList"
-import UserEnrollment from "@/components/UserEnrollment"
-import FileUpload from "@/components/FileUpload"
-import type { Course, Student, CourseFile } from "@/types"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LogOut, BookOpen } from "lucide-react";
+import CourseCreation from "@/components/CourseCreation";
+import CourseList from "@/components/CourseList";
+import UserEnrollment from "@/components/UserEnrollment";
+import FileUpload from "@/components/FileUpload";
+import type { Course, Student, CourseFile } from "@/types";
+import { useEffect, useState } from "react";
 
 interface AdminDashboardProps {
-  currentUser: string
-  onLogout: () => void
-  courses: Course[]
-  students: Student[]
-  onAddCourse: (course: Omit<Course, "id" | "enrolledStudents" | "files" | "createdDate">) => void
-  onAddFile: (courseId: number, file: Omit<CourseFile, "id">) => void
+  currentUser: string;
+  onLogout: () => void;
+  onAddFile: (courseId: number, file: Omit<CourseFile, "id">) => void;
 }
 
 export default function AdminDashboard({
   currentUser,
   onLogout,
-  courses,
-  students,
-  onAddCourse,
   onAddFile,
 }: AdminDashboardProps) {
+  const token = localStorage.getItem("token");
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [selectedTab, setSelectedTab] = useState("courses");
+
+  const fetchStudents = async () => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/students`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      console.log(data);
+      setStudents(data);
+    } catch (err) {
+      console.error("Failed to fetch students", err);
+    }
+  };
+
+  const fetchCourses = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/api/courses", {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch courses");
+      }
+
+      const data = await response.json();
+      setCourses(data);
+    } catch (err) {
+      //setError((err as Error).message);
+    } finally {
+      //setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchCourses();
+      fetchStudents();
+    }
+  }, [currentUser, selectedTab]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
@@ -37,7 +89,9 @@ export default function AdminDashboard({
               <h1 className="text-xl font-semibold">EduManage Admin</h1>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">Welcome, {currentUser}</span>
+              <span className="text-sm text-gray-600">
+                Welcome, {currentUser}
+              </span>
               <Button variant="outline" size="sm" onClick={onLogout}>
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
@@ -48,7 +102,7 @@ export default function AdminDashboard({
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs defaultValue="courses" className="space-y-6">
+        <Tabs defaultValue="courses" className="space-y-6" onValueChange={(value) => setSelectedTab(value)}>
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="courses">Courses</TabsTrigger>
             <TabsTrigger value="create">Create Course</TabsTrigger>
@@ -63,7 +117,7 @@ export default function AdminDashboard({
                 <CardDescription>View and manage all courses</CardDescription>
               </CardHeader>
               <CardContent>
-                <CourseList courses={courses} isAdmin={true} />
+                <CourseList courses={courses} isAdmin={true} onDeleteCourse={fetchCourses}/>
               </CardContent>
             </Card>
           </TabsContent>
@@ -72,10 +126,12 @@ export default function AdminDashboard({
             <Card>
               <CardHeader>
                 <CardTitle>Create New Course</CardTitle>
-                <CardDescription>Add a new course to the system</CardDescription>
+                <CardDescription>
+                  Add a new course to the system
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <CourseCreation onAddCourse={onAddCourse} />
+                <CourseCreation />
               </CardContent>
             </Card>
           </TabsContent>
@@ -96,7 +152,9 @@ export default function AdminDashboard({
             <Card>
               <CardHeader>
                 <CardTitle>File Management</CardTitle>
-                <CardDescription>Upload and manage course files</CardDescription>
+                <CardDescription>
+                  Upload and manage course files
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <FileUpload courses={courses} onFileUpload={onAddFile} />
@@ -106,5 +164,5 @@ export default function AdminDashboard({
         </Tabs>
       </main>
     </div>
-  )
+  );
 }

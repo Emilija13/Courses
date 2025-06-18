@@ -14,7 +14,7 @@ class CourseController extends Controller
      */
     public function index()
     {
-        $courses = Course::all();
+        $courses = Course::with('professor')->get();
         return response()->json($courses);
     }
 
@@ -64,6 +64,7 @@ class CourseController extends Controller
      */
     public function show(Course $course)
     {
+        $course->load('professor'); 
         return response()->json($course);
     }
 
@@ -113,5 +114,11 @@ class CourseController extends Controller
             'course_id' => $course->id,
             'student_id' => $validated['student_id']
         ], 200);
+    }
+
+    public function students($id)
+    {
+        $course = Course::with('students')->findOrFail($id);
+        return response()->json($course->students);
     }
 }

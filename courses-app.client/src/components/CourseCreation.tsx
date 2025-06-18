@@ -12,15 +12,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus } from "lucide-react";
-import type { Course } from "@/types";
 
-interface CourseCreationProps {
-  onAddCourse: (
-    course: Omit<Course, "id" | "enrolledStudents" | "files" | "createdDate">
-  ) => void;
-}
-
-export default function CourseCreation({ onAddCourse }: CourseCreationProps) {
+export default function CourseCreation() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -50,14 +43,12 @@ export default function CourseCreation({ onAddCourse }: CourseCreationProps) {
 
       if (response.status === 201) {
         const createdCourse = await response.json();
-        onAddCourse(createdCourse);
-        
+        alert("Course successfully created");
         //after api call switch to first tab
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to create course");
       }
-
     } catch (error: any) {
       alert(`Error: ${error.message}`);
     } finally {
