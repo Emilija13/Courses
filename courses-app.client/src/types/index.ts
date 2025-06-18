@@ -5,10 +5,11 @@ export interface User {
 
 export interface CourseFile {
   id: number;
-  name: string;
-  size: string;
-  uploadDate: string;
+  filename: string;
+  filesize: string;
+  created_at: string;
   type?: string;
+  filepath: string;
 }
 
 export interface Professor {

@@ -32,21 +32,21 @@ interface CourseDetailProps {
   currentUser: string;
   userRole: "professor" | "student";
   onLogout: () => void;
-  onAddFile: (courseId: number, file: Omit<CourseFile, "id">) => void;
 }
 
 export default function CourseDetail({
   currentUser,
   userRole,
-  onLogout,
-  onAddFile,
+  onLogout
 }: CourseDetailProps) {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const [isUploading, setIsUploading] = useState(false);
-
+  const [selectedTab, setSelectedTab] = useState("materials");
   const [course, setCourse] = useState<Course | null>(null);
-  const [enrolledStudents, setEnrolledStudents] = useState<Student[] | null>(null);
+  const [enrolledStudents, setEnrolledStudents] = useState<Student[] | null>(
+    null
+  );
   const token = localStorage.getItem("token");
 
   const fetchStudents = async () => {
@@ -92,7 +92,7 @@ export default function CourseDetail({
       fetchCourse();
       fetchStudents();
     }
-  }, [courseId]);
+  }, [courseId, selectedTab]);
 
   if (!course) {
     return (
@@ -115,28 +115,79 @@ export default function CourseDetail({
 
   const handleFileUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsUploading(true);
 
-    const formData = new FormData(e.target as HTMLFormElement);
-    const file = formData.get("file") as File;
+    const formElement = e.target as HTMLFormElement;
+    const fileInput = formElement.file as HTMLInputElement;
+    const file = fileInput.files?.[0];
+    if (!file) return;
 
-    if (file) {
-      // Simulate file upload
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+    const formData = new FormData();
+    formData.append("file", file);
 
-      const fileData = {
-        name: file.name,
-        size: `${(file.size / 1024).toFixed(1)} KB`,
-        uploadDate: new Date().toISOString().split("T")[0],
-        type: file.type,
-      };
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/courses/${courseId}/upload`,
+        {
+          method: "POST",
+          body: formData,
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
 
-      onAddFile(course.id, fileData);
+      if (response.ok) {
+        alert("File uploaded successfully!");
+      } else {
+        const error = await response.json();
+        alert("Upload failed: " + error.message);
+        return;
+      }
+      formElement.reset();
+      const result = await response.json();
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("An error occurred during upload.");
     }
-
-    setIsUploading(false);
-    (e.target as HTMLFormElement).reset();
   };
+
+  const handleDelete = async (fileId: number) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this file?"
+    );
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/courses/${courseId}/files/${fileId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        alert("Delete failed: " + error.message);
+        return;
+      }
+
+      alert("File deleted successfully!");
+      fetchCourse();
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert("An error occurred while deleting the file.");
+    }
+  };
+
+  const handleDownload = (filePath: string) => {
+    const url = `http://localhost:8000/storage/${filePath}`;
+    window.open(url, "_blank");
+  };
+
+ 
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -253,7 +304,11 @@ export default function CourseDetail({
         </div>
 
         {/* Course Content Tabs */}
-        <Tabs defaultValue="materials" className="space-y-6">
+        <Tabs
+          defaultValue="materials"
+          className="space-y-6"
+          onValueChange={(value) => setSelectedTab(value)}
+        >
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="materials">Course Materials</TabsTrigger>
             {userRole === "professor" && (
@@ -280,7 +335,7 @@ export default function CourseDetail({
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {/* {course.files.length > 0 ? (
+                {course.files.length > 0 ? (
                   <div className="grid gap-3">
                     {course?.files?.map((file) => (
                       <div
@@ -290,26 +345,29 @@ export default function CourseDetail({
                         <div className="flex items-center gap-3">
                           <FileText className="w-6 h-6 text-gray-500" />
                           <div>
-                            <p className="font-medium">{file.name}</p>
+                            <p className="font-medium">{file.filename}</p>
                             <p className="text-sm text-gray-500">
-                              {file.size} • Uploaded on {file.uploadDate}
+                              {file.filesize} • Uploaded on{" "}
+                              {new Date(file.created_at).toLocaleDateString(
+                                "en-CA"
+                              )}
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Button size="sm" variant="outline">
+                          <Button size="sm" variant="outline" onClick={() => handleDownload(file.filepath)}>
                             <Download className="w-4 h-4 mr-2" />
                             Download
                           </Button>
                           {userRole === "professor" && (
-                            <Button size="sm" variant="ghost">
+                            <Button size="sm" variant="ghost" onClick={() => handleDelete(file.id)}>
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           )}
                         </div>
                       </div>
-                    ))} */}
-                {/* </div>
+                    ))}
+                  </div>
                 ) : (
                   <div className="text-center py-12">
                     <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -322,7 +380,7 @@ export default function CourseDetail({
                         : "Course materials will appear here when uploaded by your instructor."}
                     </p>
                   </div>
-                )} */}
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -350,11 +408,14 @@ export default function CourseDetail({
                         >
                           <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
                             <span className="text-sm font-medium text-green-600">
-                              {student.name.charAt(0)}
+                              {student.name.charAt(0) +
+                                student.surname.charAt(0)}
                             </span>
                           </div>
                           <div>
-                            <p className="font-medium">{student.name}</p>
+                            <p className="font-medium">
+                              {student.name + " " + student.surname}
+                            </p>
                             <p className="text-sm text-gray-500">
                               {student.index}
                             </p>

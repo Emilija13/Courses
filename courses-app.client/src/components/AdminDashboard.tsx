@@ -12,19 +12,17 @@ import CourseCreation from "@/components/CourseCreation";
 import CourseList from "@/components/CourseList";
 import UserEnrollment from "@/components/UserEnrollment";
 import FileUpload from "@/components/FileUpload";
-import type { Course, Student, CourseFile } from "@/types";
+import type { Course, Student } from "@/types";
 import { useEffect, useState } from "react";
 
 interface AdminDashboardProps {
   currentUser: string;
   onLogout: () => void;
-  onAddFile: (courseId: number, file: Omit<CourseFile, "id">) => void;
 }
 
 export default function AdminDashboard({
   currentUser,
   onLogout,
-  onAddFile,
 }: AdminDashboardProps) {
   const token = localStorage.getItem("token");
   const [courses, setCourses] = useState<Course[]>([]);
@@ -157,7 +155,7 @@ export default function AdminDashboard({
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <FileUpload courses={courses} onFileUpload={onAddFile} />
+                <FileUpload courses={courses} onFileUpload={fetchCourses} />
               </CardContent>
             </Card>
           </TabsContent>

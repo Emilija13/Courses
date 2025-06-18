@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Course;
-use Illuminate\Support\Facades\Log;
-
+use App\Models\CourseFile;
+use Illuminate\Support\Facades\Storage;
 class CourseController extends Controller
 {
     /**
@@ -14,7 +14,7 @@ class CourseController extends Controller
      */
     public function index()
     {
-        $courses = Course::with('professor')->get();
+        $courses = Course::with(['professor', 'files'])->get();
         return response()->json($courses);
     }
 
@@ -64,7 +64,8 @@ class CourseController extends Controller
      */
     public function show(Course $course)
     {
-        $course->load('professor'); 
+        $course->load('professor');
+        $course->load('files');
         return response()->json($course);
     }
 
@@ -121,4 +122,36 @@ class CourseController extends Controller
         $course = Course::with('students')->findOrFail($id);
         return response()->json($course->students);
     }
+    public function uploadFile(Request $request, Course $course)
+    {
+        $request->validate([
+            'file' => 'required|file|max:10240', // Max 10MB
+        ]);
+
+        $uploadedFile = $request->file('file');
+        $filename = $uploadedFile->getClientOriginalName();
+        $path = $uploadedFile->store('course_files/' . $course->id, 'public');
+
+        $course->files()->create([
+            'filename' => $filename,
+            'filepath' => $path,
+        ]);
+
+        return response()->json(['message' => 'File uploaded successfully.']);
+    }
+
+    public function deleteFile(Course $course, CourseFile $file)
+    {
+        if ($file->course_id !== $course->id) {
+            return response()->json(['error' => 'File does not belong to this course.'], 403);
+        }
+
+        if (Storage::disk('public')->exists($file->filepath)) {
+            Storage::disk('public')->delete($file->filepath);
+        }
+        $file->delete();
+
+        return response()->json(['message' => 'File deleted successfully.']);
+    }
+
 }

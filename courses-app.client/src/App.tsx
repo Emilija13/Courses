@@ -4,15 +4,14 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import LoginPage from "@/components/LoginPage";
 import AdminDashboard from "@/components/AdminDashboard";
 import StudentDashboard from "@/components/StudentDashboard";
 import CourseDetail from "@/components/CourseDetail";
-import type { User, Course, Student, CourseFile } from "@/types";
+import type { User, Course } from "@/types";
 
 function App() {
-  //const token = localStorage.getItem("token");
   const [user, setUser] = useState<User | null>(null);
 
   const handleLogin = (userData: User) => {
@@ -21,14 +20,6 @@ function App() {
 
   const handleLogout = () => {
     setUser(null);
-  };
-
-  const addFileToCourse = (courseId: number, file: Omit<CourseFile, "id">) => {
-    // setCourses(
-    //   courses.map((course) =>
-    //     course.id === courseId ? { ...course, files: [...course.files, { ...file, id: Date.now() }] } : course,
-    //   ),
-    // )
   };
 
   if (!user) {
@@ -62,7 +53,6 @@ function App() {
               <AdminDashboard
                 currentUser={user.email}
                 onLogout={handleLogout}
-                onAddFile={addFileToCourse}
               />
             ) : (
               <StudentDashboard
@@ -80,7 +70,6 @@ function App() {
               currentUser={user.email}
               userRole={user.role}
               onLogout={handleLogout}
-              onAddFile={addFileToCourse}
             />
           }
         />

@@ -19,4 +19,9 @@ class Course extends Model
     {
         return $this->belongsTo(Professor::class);
     }
+
+    public function files()
+    {
+        return $this->hasMany(CourseFile::class);
+    }
 }
