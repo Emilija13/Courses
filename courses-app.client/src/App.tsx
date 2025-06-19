@@ -9,7 +9,7 @@ import LoginPage from "@/components/LoginPage";
 import AdminDashboard from "@/components/AdminDashboard";
 import StudentDashboard from "@/components/StudentDashboard";
 import CourseDetail from "@/components/CourseDetail";
-import type { User, Course } from "@/types";
+import type { User } from "@/types";
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -30,19 +30,6 @@ function App() {
     );
   }
 
-  // // Add progress to courses for student view
-  // const coursesWithProgress = courses.map((course) => ({
-  //   ...course,
-  //   progress:
-  //     user.role === "student" ? Math.floor(Math.random() * 100) : undefined,
-  // }));
-
-  // // Mock enrolled courses for students (courses 1 and 2)
-  const enrolledCourses : Course[]= [];
-    // user.role === "student"
-    //   ? coursesWithProgress.filter((course) => [1, 2].includes(course.id))
-    //   : coursesWithProgress;
-
   return (
     <Router>
       <Routes>
@@ -58,7 +45,6 @@ function App() {
               <StudentDashboard
                 currentUser={user.email}
                 onLogout={handleLogout}
-                courses={enrolledCourses}
               />
             )
           }

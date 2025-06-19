@@ -11,7 +11,7 @@ Route::post('login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 
 Route::apiResource('students', StudentController::class);
-Route::get('students/{student}/courses', [StudentController::class, 'courses']);
+Route::middleware('auth:sanctum')->get('students/{student}/courses', [StudentController::class, 'courses']);
 
 Route::apiResource('professors', ProfessorController::class);
 

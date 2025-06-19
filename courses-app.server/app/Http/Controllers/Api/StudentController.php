@@ -14,7 +14,7 @@ class StudentController extends Controller
     public function index()
     {
         $students = Student::all();
-        return response()->json($students);       
+        return response()->json($students);
     }
 
     /**
@@ -29,8 +29,8 @@ class StudentController extends Controller
             'index' => 'required|string|unique:students,index',
         ]);
 
-        $student = Student::create($validated); 
-        return response()->json($student, 201); 
+        $student = Student::create($validated);
+        return response()->json($student, 201);
     }
 
     /**
@@ -64,15 +64,22 @@ class StudentController extends Controller
     public function destroy(Student $student)
     {
         $student->delete();
-        return response()->json(null,204);       
+        return response()->json(null, 204);
     }
 
     /**
      * Display all courses for student
      */
-    public function courses(Student $student)
+
+    public function courses($userId)
     {
-        $courses = $student->courses->makeHidden('pivot');
+        $student = Student::where('user_id', $userId)->first();
+
+        if (!$student) {
+            return response()->json(['message' => 'Student not found'], 404);
+        }
+
+        $courses = $student->courses()->with(['professor', 'files'])->get()->makeHidden('pivot');
 
         return response()->json($courses);
     }

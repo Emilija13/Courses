@@ -1,22 +1,65 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { LogOut, BookOpen, Download, FileText } from "lucide-react"
-import { useNavigate } from "react-router-dom"
-import type { Course } from "@/types"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { LogOut, BookOpen, Download, FileText } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import type { Course } from "@/types";
+import { useEffect, useState } from "react";
 
 interface StudentDashboardProps {
-  currentUser: string
-  onLogout: () => void
-  courses: Course[]
+  currentUser: string;
+  onLogout: () => void;
 }
 
-export default function StudentDashboard({ 
-  currentUser, 
-  onLogout, 
-  courses
- }: StudentDashboardProps) {
-  const navigate = useNavigate()
+export default function StudentDashboard({
+  currentUser,
+  onLogout,
+}: StudentDashboardProps) {
+  const navigate = useNavigate();
+  const [courses, setCourses] = useState<Course[]>([]);
+  const userId = localStorage.getItem("userId");
+
+  const fetchCourses = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/students/${userId}/courses`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      console.log(response);
+      if (!response.ok) {
+        throw new Error("Failed to fetch courses");
+      }
+
+      const data = await response.json();
+      setCourses(data);
+    } catch (err) {
+      //setError((err as Error).message);
+    } finally {
+      //setLoading(false);
+    }
+  };
+
+  const handleDownload = (filePath: string) => {
+    const url = `http://localhost:8000/storage/${filePath}`;
+    window.open(url, "_blank");
+  };
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchCourses();
+    }
+  }, [currentUser]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -30,7 +73,9 @@ export default function StudentDashboard({
               <h1 className="text-xl font-semibold">EduManage Student</h1>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">Welcome, {currentUser}</span>
+              <span className="text-sm text-gray-600">
+                Welcome, {currentUser}
+              </span>
               <Button variant="outline" size="sm" onClick={onLogout}>
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
@@ -43,7 +88,9 @@ export default function StudentDashboard({
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">My Courses</h2>
-          <p className="text-gray-600">Access your enrolled courses and materials</p>
+          <p className="text-gray-600">
+            Access your enrolled courses and materials
+          </p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -56,12 +103,17 @@ export default function StudentDashboard({
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div>
-                    <CardTitle className="text-lg">{course.title}</CardTitle>
-                    <CardDescription className="mt-2">{course.description}</CardDescription>
+                    <CardTitle className="text-lg">{course.name}</CardTitle>
+                    <CardDescription className="mt-2">
+                      {course.description}
+                    </CardDescription>
                   </div>
                   <Badge variant="secondary">{course.progress || 0}%</Badge>
                 </div>
-                <div className="text-sm text-gray-600 mt-2">Instructor: {course.instructor}</div>
+                <div className="text-sm text-gray-600 mt-2">
+                  Instructor:{" "}
+                  {course.professor.name + " " + course.professor.surname}
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -85,20 +137,35 @@ export default function StudentDashboard({
                     </h4>
                     <div className="space-y-2 max-h-32 overflow-y-auto">
                       {course.files.slice(0, 3).map((file) => (
-                        <div key={file.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                        <div
+                          key={file.id}
+                          className="flex items-center justify-between p-2 bg-gray-50 rounded-md"
+                        >
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {file.filename}
+                            </p>
                             <p className="text-xs text-gray-500">
-                              {file.size} • {file.uploadDate}
+                              •{" "}
+                              {new Date(file.created_at).toLocaleDateString(
+                                "en-CA"
+                              )}
                             </p>
                           </div>
-                          <Button size="sm" variant="ghost" className="ml-2" onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="ml-2"
+                            onClick={() => handleDownload(file.filepath)}
+                          >
                             <Download className="w-4 h-4" />
                           </Button>
                         </div>
                       ))}
                       {course.files.length > 3 && (
-                        <p className="text-xs text-gray-500 text-center">+{course.files.length - 3} more files</p>
+                        <p className="text-xs text-gray-500 text-center">
+                          +{course.files.length - 3} more files
+                        </p>
                       )}
                     </div>
                   </div>
@@ -112,12 +179,16 @@ export default function StudentDashboard({
           <Card className="text-center py-12">
             <CardContent>
               <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No courses enrolled</h3>
-              <p className="text-gray-600">Contact your administrator to get enrolled in courses.</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No courses enrolled
+              </h3>
+              <p className="text-gray-600">
+                Contact your administrator to get enrolled in courses.
+              </p>
             </CardContent>
           </Card>
         )}
       </main>
     </div>
-  )
+  );
 }
