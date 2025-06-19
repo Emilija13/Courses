@@ -77,9 +77,9 @@ export default function CourseList({
                   className="flex gap-1"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <Button size="sm" variant="ghost">
+                  {/* <Button size="sm" variant="ghost">
                     <Edit className="w-4 h-4" />
-                  </Button>
+                  </Button> */}
                   <Button size="sm" variant="ghost" onClick={(e) => handleDelete(e, course.id)}>
                     <Trash2 className="w-4 h-4" />
                   </Button>

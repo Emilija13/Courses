@@ -47,6 +47,7 @@ export default function CourseDetail({
   const [enrolledStudents, setEnrolledStudents] = useState<Student[] | null>(
     null
   );
+  const [checkedMaterials, setCheckedMaterials] = useState<number[]>([]);
   const token = localStorage.getItem("token");
 
   const fetchStudents = async () => {
@@ -93,6 +94,16 @@ export default function CourseDetail({
       fetchStudents();
     }
   }, [courseId, selectedTab]);
+
+  const handleCheckboxChange = (fileId: number) => {
+    setCheckedMaterials((prev) => 
+    prev.includes(fileId)
+  ? prev.filter((id) => id !== fileId)
+: [...prev, fileId]
+);
+  }
+
+  
 
   if (!course) {
     return (
@@ -188,6 +199,7 @@ export default function CourseDetail({
   };
 
  
+  const progress = (checkedMaterials.length / (course.files?.length || 1)) * 100;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -343,6 +355,12 @@ export default function CourseDetail({
                         className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
                       >
                         <div className="flex items-center gap-3">
+                          <input
+                        type="checkbox"
+                        checked={checkedMaterials.includes(file.id)}
+                        onChange={() => handleCheckboxChange(file.id)}
+                        className="mr-4 h-6 w-6"
+                      />
                           <FileText className="w-6 h-6 text-gray-500" />
                           <div>
                             <p className="font-medium">{file.filename}</p>
@@ -502,12 +520,12 @@ export default function CourseDetail({
                     <div>
                       <div className="flex justify-between text-sm mb-2">
                         <span>Course Completion</span>
-                        <span>{course.progress || 65}%</span>
+                        <span>{progress}%</span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-3">
+                      <div className="w-full bg-gray-200 rounded-full h-4">
                         <div
-                          className="bg-green-600 h-3 rounded-full"
-                          style={{ width: `${course.progress || 65}%` }}
+                          className="bg-green-600 h-4 rounded-full"
+                          style={{ width: `${progress}%` }}
                         />
                       </div>
                     </div>
@@ -516,17 +534,11 @@ export default function CourseDetail({
                       <div className="p-4 border rounded-lg">
                         <h4 className="font-medium mb-2">Materials Accessed</h4>
                         <p className="text-2xl font-bold text-green-600">
-                          3/{course.files?.length}
+                          {checkedMaterials.length} /{" "}
+                          {course.files?.length}
                         </p>
                         <p className="text-sm text-gray-500">
                           Files downloaded
-                        </p>
-                      </div>
-                      <div className="p-4 border rounded-lg">
-                        <h4 className="font-medium mb-2">Time Spent</h4>
-                        <p className="text-2xl font-bold text-green-600">24h</p>
-                        <p className="text-sm text-gray-500">
-                          Total study time
                         </p>
                       </div>
                     </div>

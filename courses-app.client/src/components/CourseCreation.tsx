@@ -13,7 +13,11 @@ import {
 } from "@/components/ui/select";
 import { Plus } from "lucide-react";
 
-export default function CourseCreation() {
+interface CourseCreationProps {
+  onSuccess: () => void;
+}
+
+export default function CourseCreation({ onSuccess }: CourseCreationProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,6 +48,7 @@ export default function CourseCreation() {
       if (response.status === 201) {
         const createdCourse = await response.json();
         alert("Course successfully created");
+        onSuccess();
         //after api call switch to first tab
       } else {
         const errorData = await response.json();

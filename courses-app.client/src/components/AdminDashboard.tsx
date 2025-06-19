@@ -100,66 +100,71 @@ export default function AdminDashboard({
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs defaultValue="courses" className="space-y-6" onValueChange={(value) => setSelectedTab(value)}>
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="courses">Courses</TabsTrigger>
-            <TabsTrigger value="create">Create Course</TabsTrigger>
-            <TabsTrigger value="enroll">Enroll Students</TabsTrigger>
-            <TabsTrigger value="files">Manage Files</TabsTrigger>
-          </TabsList>
+        <Tabs 
+  value={selectedTab} 
+  onValueChange={(value) => setSelectedTab(value)} 
+  className="space-y-6"
+>
+  <TabsList className="grid w-full grid-cols-4">
+    <TabsTrigger value="courses">Courses</TabsTrigger>
+    <TabsTrigger value="create">Create Course</TabsTrigger>
+    <TabsTrigger value="enroll">Enroll Students</TabsTrigger>
+    <TabsTrigger value="files">Manage Files</TabsTrigger>
+  </TabsList>
 
-          <TabsContent value="courses">
-            <Card>
-              <CardHeader>
-                <CardTitle>Course Management</CardTitle>
-                <CardDescription>View and manage all courses</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <CourseList courses={courses} isAdmin={true} onDeleteCourse={fetchCourses}/>
-              </CardContent>
-            </Card>
-          </TabsContent>
+  <TabsContent value="courses">
+    <Card>
+      <CardHeader>
+        <CardTitle>Course Management</CardTitle>
+        <CardDescription>View and manage all courses</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <CourseList courses={courses} isAdmin={true} onDeleteCourse={fetchCourses}/>
+      </CardContent>
+    </Card>
+  </TabsContent>
 
-          <TabsContent value="create">
-            <Card>
-              <CardHeader>
-                <CardTitle>Create New Course</CardTitle>
-                <CardDescription>
-                  Add a new course to the system
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <CourseCreation />
-              </CardContent>
-            </Card>
-          </TabsContent>
+  <TabsContent value="create">
+    <Card>
+      <CardHeader>
+        <CardTitle>Create New Course</CardTitle>
+        <CardDescription>
+          Add a new course to the system
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <CourseCreation onSuccess={() => setSelectedTab("courses")} />
+      </CardContent>
+    </Card>
+  </TabsContent>
 
-          <TabsContent value="enroll">
-            <Card>
-              <CardHeader>
-                <CardTitle>Student Enrollment</CardTitle>
-                <CardDescription>Enroll students in courses</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <UserEnrollment courses={courses} students={students} />
-              </CardContent>
-            </Card>
-          </TabsContent>
+  <TabsContent value="enroll">
+    <Card>
+      <CardHeader>
+        <CardTitle>Student Enrollment</CardTitle>
+        <CardDescription>Enroll students in courses</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <UserEnrollment courses={courses} students={students} />
+      </CardContent>
+    </Card>
+  </TabsContent>
 
-          <TabsContent value="files">
-            <Card>
-              <CardHeader>
-                <CardTitle>File Management</CardTitle>
-                <CardDescription>
-                  Upload and manage course files
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <FileUpload courses={courses} onFileUpload={fetchCourses} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+  <TabsContent value="files">
+    <Card>
+      <CardHeader>
+        <CardTitle>File Management</CardTitle>
+        <CardDescription>
+          Upload and manage course files
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <FileUpload courses={courses} onFileUpload={fetchCourses} />
+      </CardContent>
+    </Card>
+  </TabsContent>
+</Tabs>
+
       </main>
     </div>
   );
